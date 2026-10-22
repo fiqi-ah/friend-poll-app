@@ -94,41 +94,42 @@
             };
         }
 
-        function renderState(state) {
-            document.getElementById("question-text").innerText = state.question;
-            const listContainer = document.getElementById("players-list");
-            listContainer.innerHTML = "";
+       function renderState(state) {
+  document.getElementById("question-text").innerText = state.question;
+  const listContainer = document.getElementById("players-list");
+  listContainer.innerHTML = "";
 
-            const totalVotes = Object.values(state.votes).reduce((a, b) => a + b, 0);
+  const totalVotes = Object.values(state.votes).reduce((a, b) => a + b, 0);
 
-            state.players.forEach(player => {
-                const count = state.votes[player] || 0;
-                const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+  state.players.forEach(player => {
+    const count = state.votes[player] || 0;
+    const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
 
-                const row = document.createElement("div");
-                row.className = "relative overflow-hidden bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 flex justify-between items-center cursor-pointer hover:border-indigo-500 transition";
-                row.onclick = () => vote(player);
+    const row = document.createElement("div");
+    row.className = "relative overflow-hidden bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 flex justify-between items-center cursor-pointer hover:border-indigo-500 transition";
+    row.onclick = () => vote(player);
 
-                row.innerHTML = `
-          <!-- Live vote percentage fill -->
-          <div class="absolute left-0 top-0 bottom-0 bg-indigo-600/30 transition-all duration-300" style="width: ${pct}%"></div>
-          <span class="relative z-10 font-medium text-slate-200">${player}</span>
-          <span class="relative z-10 text-xs font-bold bg-slate-700/80 px-2 py-1 rounded text-slate-300">${count} (${pct}%)</span>
-        `;
-                listContainer.appendChild(row);
-            });
-        }
+    // Progress bar fill
+    const bar = document.createElement("div");
+    bar.className = "absolute left-0 top-0 bottom-0 bg-indigo-600/30 transition-all duration-300";
+    bar.style.width = `${pct}%`;
 
-        function vote(playerName) {
-            socket.send(JSON.stringify({ action: "vote", target: playerName }));
-        }
+    // Safe text injection (prevents XSS/formatting errors)
+    const nameLabel = document.createElement("span");
+    nameLabel.className = "relative z-10 font-medium text-slate-200";
+    nameLabel.textContent = player;
 
-        function submitQuestion() {
-            const qInput = document.getElementById("new-q-input");
-            if (!qInput.value.trim()) return;
-            socket.send(JSON.stringify({ action: "new_question", question: qInput.value.trim() }));
-            qInput.value = "";
-        }
+    const countBadge = document.createElement("span");
+    countBadge.className = "relative z-10 text-xs font-bold bg-slate-700/80 px-2 py-1 rounded text-slate-300";
+    countBadge.textContent = `${count} (${pct}%)`;
+
+    row.appendChild(bar);
+    row.appendChild(nameLabel);
+    row.appendChild(countBadge);
+    listContainer.appendChild(row);
+  });
+}
+         
     </script>
 </body>
 
